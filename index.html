@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 부동산 중개보수 계산기</title>
+    <title>2026 부동산 중개보수 & 취득세 계산기</title>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -308,7 +308,7 @@
         <div class="header-row">
             <h1>
                 <i data-lucide="calculator" color="var(--primary)"></i>
-                중개보수 계산기
+                부동산 중개보수 & 취득세 계산기
             </h1>
             <button class="theme-toggle" id="theme-toggle" aria-label="Toggle Dark Mode">
                 <i data-lucide="moon" id="theme-icon"></i>
@@ -390,6 +390,45 @@
                 </div>
                 <p class="notice" style="margin-top: 5px; text-align: left;">* 0.9% 이내에서 협의하여 입력하세요.</p>
             </div>
+
+            <!-- 4. 취득세 정보 (매매 시에만 표시) -->
+            <div id="acquisition-tax-section" class="section hidden" style="margin-top:1.5rem;">
+                <div class="section-label">
+                    <i data-lucide="landmark" size="16"></i> 취득세 정보
+                </div>
+
+                <!-- 주택 수 선택 -->
+                <!-- 주택 수 선택 -->
+                <div style="margin-bottom: 1rem;" id="house-count-row">
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-sub); font-weight: 500;">보유 주택
+                        수 (취득 후 기준)</p>
+                    <div class="segment-control">
+                        <input type="radio" name="houseCount" id="house-1" value="1" checked>
+                        <label for="house-1">1주택</label>
+
+                        <input type="radio" name="houseCount" id="house-2" value="2">
+                        <label for="house-2">2주택</label>
+
+                        <input type="radio" name="houseCount" id="house-3" value="3">
+                        <label for="house-3">3주택</label>
+
+                        <input type="radio" name="houseCount" id="house-4" value="4">
+                        <label for="house-4">4주택+</label>
+                    </div>
+                </div>
+
+                <!-- 추가 옵션 (조정지역, 85초과) -->
+                <div class="offi-box" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                    <label id="adjusted-area-label">
+                        <input type="checkbox" id="is-adjusted-area">
+                        <span>조정대상지역</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="is-over-85">
+                        <span>전용면적 85㎡ 초과 (농특세 추가)</span>
+                    </label>
+                </div>
+            </div>
         </div>
 
         <!-- 결과 카드 -->
@@ -410,6 +449,10 @@
                 <span>부가세 (10%)</span>
                 <span id="vat-display">0원</span>
             </div>
+            <div class="result-row hidden" id="tax-row">
+                <span>예상 취득세</span>
+                <span id="tax-display" style="color: var(--primary); font-weight: 600;">0원</span>
+            </div>
             <div class="result-row total">
                 <span>총 예상금액</span>
                 <span id="total-display">0원</span>
@@ -419,6 +462,7 @@
         <p class="notice">
             * 2026년 기준(2025년 요율 유지)을 적용했습니다.<br>
             * 중개보수는 법정 상한 내 협의 사항이며, 부가세는 별도입니다.<br>
+            * 취득세는 주요 감면 및 특례 사항(생애최초 등)이 반영되지 않았습니다.<br>
         </p>
     </div>
 
@@ -439,25 +483,12 @@
 
         themeToggleBtn.addEventListener('click', () => {
             const currentTheme = htmlEl.getAttribute('data-theme');
-            if (currentTheme === 'dark') {
-                htmlEl.setAttribute('data-theme', 'light');
-                // Re-render icon to Moon
-                themeIcon.setAttribute('name', 'moon'); // Lucide handles replacement, but simple attribute switch works with re-render
-                // Normally lucide replaces the <i> tag with SVG. Use basic toggle logic:
-                // For simplicity with Lucide execution:
-                location.reload(); // Simple hack to reload icons properly, OR remove existing SVG and create new.
-                // Better approach for single page w/o reload:
-                // But let's just toggle CSS for now, icon change is visual.
-            } else {
-                htmlEl.setAttribute('data-theme', 'dark');
-            }
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-            // Manual Icon Toggle without reload
-            const svg = themeToggleBtn.querySelector('svg');
-            if (htmlEl.getAttribute('data-theme') === 'dark') {
-                // It was light (Moon), now Dark (Sun needed)
-                // Ideally we re-run lucide.createIcons or swap SVG contents.
-                // For this simple demo, we will restart the icon rendering on the button only
+            htmlEl.setAttribute('data-theme', newTheme);
+
+            // Icon Toggle
+            if (newTheme === 'dark') {
                 themeToggleBtn.innerHTML = '<i data-lucide="sun"></i>';
             } else {
                 themeToggleBtn.innerHTML = '<i data-lucide="moon"></i>';
@@ -506,9 +537,16 @@
         const transRadios = document.getElementsByName('transType');
         const offiCheckbox = document.getElementById('is-residential-offi');
 
+        // Acquisition Tax Inputs
+        const taxRadios = document.getElementsByName('houseCount');
+        const taxCheckboxes = [document.getElementById('is-adjusted-area'), document.getElementById('is-over-85')];
+
         propRadios.forEach(r => r.addEventListener('change', () => { updateUI(); calculateFee(); }));
         transRadios.forEach(r => r.addEventListener('change', () => { updateUI(); calculateFee(); }));
-        offiCheckbox.addEventListener('change', calculateFee);
+        offiCheckbox.addEventListener('change', () => { updateUI(); calculateFee(); });
+
+        taxRadios.forEach(r => r.addEventListener('change', calculateFee));
+        taxCheckboxes.forEach(c => c.addEventListener('change', calculateFee));
 
         function updateUI() {
             const propType = document.querySelector('input[name="propertyType"]:checked').value;
@@ -518,20 +556,44 @@
             const amountLabel = document.getElementById('amount-label');
             const customRateSection = document.getElementById('rate-section');
             const offiOption = document.getElementById('offi-option');
+            const taxSection = document.getElementById('acquisition-tax-section');
+            const taxRow = document.getElementById('tax-row');
 
             if (transType === 'lease') {
                 amountLabel.innerText = "보증금";
                 wolseSection.classList.remove('hidden');
+                taxSection.classList.add('hidden');
+                taxRow.classList.add('hidden');
             } else {
                 amountLabel.innerText = "매매/교환 금액";
                 wolseSection.classList.add('hidden');
                 document.getElementById('monthly-rent').value = '';
+
+                // Show tax section only for 'house'
+                // Actually Acquisition Tax applies to all, but the complex logic is mainly for houses.
+                // For simplified UX, let's show it for all 'sale' types, but disable house-count for non-houses if needed.
+                // Current Requirement: "Calculated based on house count". 
+                // Let's show it always for Sale, but logic differs.
+                taxSection.classList.remove('hidden');
+                taxRow.classList.remove('hidden');
             }
 
             if (propType === 'officetel') {
                 offiOption.classList.remove('hidden');
             } else {
                 offiOption.classList.add('hidden');
+            }
+
+            // Toggle House Count & Adjusted Area (Only valid for House)
+            const houseCountRow = document.getElementById('house-count-row');
+            const adjAreaLabel = document.getElementById('adjusted-area-label');
+
+            if (propType === 'house') {
+                houseCountRow.classList.remove('hidden');
+                adjAreaLabel.classList.remove('hidden');
+            } else {
+                houseCountRow.classList.add('hidden');
+                adjAreaLabel.classList.add('hidden');
             }
 
             const isResidentialOffi = document.getElementById('is-residential-offi').checked;
@@ -588,6 +650,7 @@
             } else {
                 let customRate = parseFloat(document.getElementById('custom-rate').value);
                 if (isNaN(customRate)) customRate = 0.9;
+                if (customRate > 0.9) customRate = 0.9; // Cap at 0.9%
                 rate = customRate;
             }
 
@@ -603,12 +666,98 @@
             updateResult(calcAmount, rate, fee, vat, total);
         }
 
+        function getAcquisitionTax(price, propType, houseCount, isAdjusted, isOver85) {
+            // Logic based on 2026 plan (similar to current 2024-2025)
+            // 1. Check Property Type
+            if (propType === 'officetel' || propType === 'other') {
+                return 4.6; // 4% + 0.2 + 0.4
+            }
+
+            // 2. House Logic
+            let baseRate = 0; // Tax rate without surtax
+
+            // Step A: Determine Base Rate based on Household Count & Adjusted Area
+            if (houseCount === '4') {
+                baseRate = 12; // 4주택 이상: 12%
+            } else if (houseCount === '3') {
+                baseRate = isAdjusted ? 12 : 8; // 3주택: 조정 12%, 비조정 8%
+            } else if (houseCount === '2') {
+                baseRate = isAdjusted ? 8 : 1; // 2주택: 조정 8%, 비조정 1~3% (Treat as 1 House logic initially, but if 8% fixes it's 8)
+                // Note: For 2 Houses in Non-Adjusted Area, it follows 1-House rates (1~3%).
+                if (!isAdjusted) {
+                    // Go to Step B (1 House Logic)
+                    baseRate = getOneHouseRate(price);
+                }
+            } else {
+                // 1 House
+                baseRate = getOneHouseRate(price);
+            }
+
+            // Step B: Add Surtax (Local Education, Rural Special)
+            // Rule of thumb:
+            // - Education Tax: 
+            //    - if baseRate <= 4%: 0.1% (Price * 0.1%)
+            //    - if baseRate > 4%: 0.4% (Price * 0.4%)
+            //    * But wait, the standard is: 
+            //      - 1~3%: Edu is Base * 10% (0.1~0.3)
+            //      - 4% (Comm.): Edu is 0.4
+            //      - Heavy (8, 12): Edu is 0.4
+            // - Rural Tax:
+            //    - if Area <= 85m2: 0 (Exempt)
+            //    - if Area > 85m2: 0.2%
+
+            // Simplified Calculation for Estimate
+            let totalRate = baseRate;
+            let eduTax = 0;
+            let ruralTax = isOver85 ? 0.2 : 0;
+
+            if (baseRate >= 8) {
+                // Heavy Duty
+                // Edu Tax is usually 0.4% for heavy duty
+                eduTax = 0.4;
+            } else if (baseRate === 4.6) {
+                // Treated above
+            } else {
+                // Normal (1~3%)
+                // Edu tax is 10% of Acquisition Tax. 
+                // Ex: 1% -> 0.1%, 3% -> 0.3%
+                eduTax = baseRate * 0.1;
+
+                // Exception: Low price < 600m
+                // Note: It's complex. Let's stick to standard approximation.
+            }
+
+            return totalRate + eduTax + ruralTax;
+        }
+
+        function getOneHouseRate(price) {
+            // Price is in Won
+            // < 600,000,000 : 1%
+            // 600m ~ 900m : Formula
+            // > 900,000,000 : 3%
+
+            if (price <= 600000000) return 1.0;
+            if (price > 900000000) return 3.0;
+
+            // Formula: (Price * 2 / 300,000,000 - 3) * 100 / 100 ??
+            // Actually: (Price (in 100m units) * 2 / 3 - 3) %
+            // Ex: 7.5억 -> 7.5 * 2/3 - 3 = 5 - 3 = 2%
+            // Let's compute exact.
+
+            // Price / 100,000,000 = P_uk
+            let p_uk = price / 100000000;
+            let rate = (p_uk * 2 / 3) - 3;
+            // Round to 2 decimals
+            return Math.round(rate * 100) / 100;
+        }
+
         function updateResult(calcAmount, rate, fee, vat, total) {
             document.getElementById('trans-amount-display').innerText = Math.floor(calcAmount).toLocaleString() + '원';
 
             let rateText = rate + '%';
             const propType = document.querySelector('input[name="propertyType"]:checked').value;
             const isResidentialOffi = document.getElementById('is-residential-offi').checked;
+            const transType = document.querySelector('input[name="transType"]:checked').value;
 
             if (propType === 'house' || (propType === 'officetel' && isResidentialOffi)) {
                 rateText = '상한 ' + rateText;
@@ -617,7 +766,26 @@
             document.getElementById('fee-rate-display').innerText = rateText;
             document.getElementById('fee-display').innerText = Math.floor(fee).toLocaleString() + '원';
             document.getElementById('vat-display').innerText = Math.floor(vat).toLocaleString() + '원';
-            document.getElementById('total-display').innerText = Math.floor(total).toLocaleString() + '원';
+
+            // Acquisition Tax Display
+            let totalWithTax = total;
+
+            if (transType === 'sale') {
+                const houseCount = document.querySelector('input[name="houseCount"]:checked').value;
+                const isAdjusted = document.getElementById('is-adjusted-area').checked;
+                const isOver85 = document.getElementById('is-over-85').checked;
+                const taxRate = getAcquisitionTax(calcAmount, propType, houseCount, isAdjusted, isOver85);
+                const taxAmount = calcAmount * (taxRate / 100);
+
+                document.getElementById('tax-display').innerText = Math.floor(taxAmount).toLocaleString() + '원 (' + taxRate.toFixed(2) + '%)';
+                document.getElementById('tax-row').classList.remove('hidden');
+
+                totalWithTax += taxAmount;
+            } else {
+                document.getElementById('tax-row').classList.add('hidden');
+            }
+
+            document.getElementById('total-display').innerText = Math.floor(totalWithTax).toLocaleString() + '원';
         }
 
         // Initial run
