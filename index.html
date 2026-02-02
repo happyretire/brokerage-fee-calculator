@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 부동산 중개보수 계산기</title>
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-gradient-start: #f8fafc;
+            --bg-gradient-end: #e2e8f0;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-color: #1e293b;
+            --text-secondary: #64748b;
+            --border-radius: 16px;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--text-color);
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(to right, #818cf8, #6366f1, #4338ca);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        .section {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .segment-control {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .segment-control input[type="radio"] {
+            display: none;
+        }
+
+        .segment-control label {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 0;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+        }
+
+        .segment-control input[type="radio"]:checked + label {
+            background: white;
+            color: var(--primary-color);
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            outline: none;
+            text-align: right;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .input-group span {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .btn {
+            width: 100%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .result-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border: 1px solid #e2e8f0;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+        }
+
+        .result-row.total {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px dashed #cbd5e1;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        .result-row span:first-child {
+            color: var(--text-secondary);
+        }
+
+        .notice {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        /* Helper for Amount Input */
+        .amount-helper {
+            font-size: 0.8em;
+            color: var(--primary-color);
+            margin-top: 4px;
+            text-align: right;
+            height: 1.2em;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>2026 부동산 중개보수 계산</h1>
+    
+    <!-- 1. 물건 종류 -->
+    <div class="section">
+        <label>물건 종류</label>
+        <div class="segment-control">
+            <input type="radio" name="propertyType" id="prop-house" value="house" checked>
+            <label for="prop-house">주택</label>
+            
+            <input type="radio" name="propertyType" id="prop-offi" value="officetel">
+            <label for="prop-offi">오피스텔</label>
+            
+            <input type="radio" name="propertyType" id="prop-other" value="other">
+            <label for="prop-other">그 외</label>
+        </div>
+    </div>
+
+    <!-- 2. 거래 유형 -->
+    <div class="section">
+        <label>거래 유형</label>
+        <div class="segment-control">
+            <input type="radio" name="transType" id="trans-sale" value="sale" checked>
+            <label for="trans-sale">매매/교환</label>
+            
+            <input type="radio" name="transType" id="trans-lease" value="lease">
+            <label for="trans-lease">전세/월세</label>
+        </div>
+    </div>
+
+    <!-- 3. 금액 입력 -->
+    <div class="section">
+        <label id="amount-label">거래 금액</label>
+        <div class="input-group">
+            <input type="text" id="amount" placeholder="0" oninput="formatNumber(this)">
+            <span id="amount-unit">원</span>
+        </div>
+        <div class="amount-helper" id="amount-helper"></div>
+
+        <div id="wolse-section" class="hidden">
+            <label>월세</label>
+            <div class="input-group">
+                <input type="text" id="monthly-rent" placeholder="0" oninput="formatNumber(this)">
+                <span>원</span>
+            </div>
+        </div>
+
+        <!-- 협의 요율 입력 (오피스텔 일부, 그외, 고가 구간 등) -->
+        <div id="rate-section" class="hidden" style="margin-top:1rem;">
+            <label>협의 요율 (최대 <span id="max-rate-display">0.9</span>%)</label>
+            <div class="input-group">
+                <input type="number" id="custom-rate" placeholder="협의 요율 입력" step="0.1">
+                <span>%</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn" onclick="calculateFee()">계산하기</button>
+
+    <div class="result-card" id="result-card">
+        <div class="result-row">
+            <span>거래금액(환산)</span>
+            <span id="trans-amount-display">0원</span>
+        </div>
+        <div class="result-row">
+            <span>적용요율</span>
+            <span id="fee-rate-display">0%</span>
+        </div>
+        <div class="result-row">
+            <span>중개보수</span>
+            <span id="fee-display">0원</span>
+        </div>
+        <div class="result-row">
+            <span>부가세(10%)</span>
+            <span id="vat-display">0원</span>
+        </div>
+        <div class="result-row total">
+            <span>총 예상금액</span>
+            <span id="total-display">0원</span>
+        </div>
+    </div>
+
+    <p class="notice">
+        * 2026년(2025년 유지) 기준 최신 요율표를 적용했습니다.<br>
+        * 중개보수는 한도 내에서 협의하여 결정하며, 부가세는 별도입니다.<br>
+        * 오피스텔은 전용 85㎡ 이하, 입식부엌 등 설비 갖춘 주거용 기준 (그 외 0.9% 협의)
+    </p>
+</div>
+
+<script>
+    // 전역 변수
+    let currentKorAmount = '';
+
+    // 천단위 콤마 포맷팅
+    function formatNumber(input) {
+        let value = input.value.replace(/[^0-9]/g, '');
+        if (value) {
+            input.value = parseInt(value).toLocaleString();
+            updateHelperText(parseInt(value));
+        } else {
+            input.value = '';
+            document.getElementById('amount-helper').innerText = '';
+        }
+    }
+
+    // 금액 한글 표시 (예: 1억 5,000만)
+    function updateHelperText(num) {
+        if (!num) return;
+        let result = '';
+        const man = 10000;
+        const eok = 100000000;
+        
+        if (num >= eok) {
+            let eokPart = Math.floor(num / eok);
+            let remainder = num % eok;
+            result += eokPart + '억 ';
+            if (remainder > 0) {
+                result += (remainder / man).toLocaleString() + '만';
+            }
+        } else {
+            result += (num / man).toLocaleString() + '만';
+        }
+        document.getElementById('amount-helper').innerText = result + ' 원';
+    }
+
+    // UI 상태 업데이트
+    const propRadios = document.getElementsByName('propertyType');
+    const transRadios = document.getElementsByName('transType');
+    
+    function updateUI() {
+        const propType = document.querySelector('input[name="propertyType"]:checked').value;
+        const transType = document.querySelector('input[name="transType"]:checked').value;
+        
+        const wolseSection = document.getElementById('wolse-section');
+        const amountLabel = document.getElementById('amount-label');
+        const customRateSection = document.getElementById('rate-section');
+        const maxRateDisplay = document.getElementById('max-rate-display');
+
+        // 전세/월세 UI 처리
+        if (transType === 'lease') {
+            amountLabel.innerText = "보증금";
+            wolseSection.classList.remove('hidden');
+        } else {
+            amountLabel.innerText = "매매/교환 금액";
+            wolseSection.classList.add('hidden');
+            document.getElementById('monthly-rent').value = '';
+        }
+
+        // 오피스텔/그외 협의요율 표시 로직
+        // 단순화를 위해 UI에서는 기본적으로 자동 계산하되, 
+        // '그 외'인 경우 계산기 로직 내부에서 0.9% Max를 보여줌.
+        // 실제 앱에서는 사용자 입력이 필요할 수 있으나, 여기서는 "단순 제작" 요청에 맞춰 자동 최대요율 적용 후 결과 보여주기로 처리.
+        // 다만 '그 외'나 '오피스텔(도 업무용일수있음)' 고려하여...
+        // 이번 버전은 "자동 계산" 위주로 하되, 주택 외는 0.9% 상한으로 계산한다고 가정.
+    }
+
+    propRadios.forEach(r => r.addEventListener('change', updateUI));
+    transRadios.forEach(r => r.addEventListener('change', updateUI));
+    updateUI(); // 초기실행
+
+    function calculateFee() {
+        const propType = document.querySelector('input[name="propertyType"]:checked').value;
+        const transType = document.querySelector('input[name="transType"]:checked').value;
+        
+        let amount = parseInt(document.getElementById('amount').value.replace(/,/g, '')) || 0;
+        let monthly = parseInt(document.getElementById('monthly-rent').value.replace(/,/g, '')) || 0;
+
+        // 월세 환산보증금 계산
+        let calcAmount = amount;
+        if (transType === 'lease' && monthly > 0) {
+            calcAmount = amount + (monthly * 100);
+            if (calcAmount < 50000000) {
+                calcAmount = amount + (monthly * 70);
+            }
+        }
+
+        let rate = 0;
+        let limit = 0; // 한도액 (0이면 없음)
+
+        if (propType === 'house') {
+            // 주택 요율 (2025/2026 기준)
+            if (transType === 'sale') {
+                if (calcAmount < 50000000) { rate = 0.6; limit = 250000; }
+                else if (calcAmount < 200000000) { rate = 0.5; limit = 800000; }
+                else if (calcAmount < 900000000) { rate = 0.4; }
+                else if (calcAmount < 1200000000) { rate = 0.5; }
+                else if (calcAmount < 1500000000) { rate = 0.6; }
+                else { rate = 0.7; }
+            } else { // 임대차
+                if (calcAmount < 50000000) { rate = 0.5; limit = 200000; }
+                else if (calcAmount < 100000000) { rate = 0.4; limit = 300000; }
+                else if (calcAmount < 600000000) { rate = 0.3; }
+                else if (calcAmount < 1200000000) { rate = 0.4; }
+                else if (calcAmount < 1500000000) { rate = 0.5; }
+                else { rate = 0.6; }
+            }
+        } else if (propType === 'officetel') {
+            // 주거용 오피스텔 (전용 85이하) 가정
+            if (transType === 'sale') rate = 0.5;
+            else rate = 0.4;
+        } else {
+            // 그 외 (토지, 상가 등)
+            rate = 0.9;
+        }
+
+        // 중개보수 계산
+        let fee = calcAmount * (rate / 100);
+        
+        // 한도액 적용
+        if (limit > 0 && fee > limit) {
+            fee = limit;
+        }
+
+        // 부가세 10%
+        let vat = fee * 0.1;
+        let total = fee + vat;
+
+        // 결과 표시
+        document.getElementById('trans-amount-display').innerText = Math.floor(calcAmount).toLocaleString() + '원';
+        document.getElementById('fee-rate-display').innerText = '상한 ' + rate + '%';
+        document.getElementById('fee-display').innerText = Math.floor(fee).toLocaleString() + '원';
+        document.getElementById('vat-display').innerText = Math.floor(vat).toLocaleString() + '원';
+        document.getElementById('total-display').innerText = Math.floor(total).toLocaleString() + '원';
+
+        document.getElementById('result-card').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
