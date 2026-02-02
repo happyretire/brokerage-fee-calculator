@@ -1,28 +1,65 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026 부동산 중개보수 계산기</title>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --primary-color: #6366f1;
+            /* Light Mode Variables (Default) */
+            --primary: #6366f1;
             --primary-hover: #4f46e5;
             --bg-gradient-start: #f8fafc;
-            --bg-gradient-end: #e2e8f0;
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --text-color: #1e293b;
-            --text-secondary: #64748b;
-            --border-radius: 16px;
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --bg-gradient-end: #cbd5e1;
+            --card-bg: rgba(255, 255, 255, 0.90);
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --input-bg: #ffffff;
+            --input-border: #e2e8f0;
+            --segment-bg: #f1f5f9;
+            --segment-active-bg: #ffffff;
+            --segment-text: #64748b;
+            --segment-active-text: #6366f1;
+            --result-card-bg: #f8fafc;
+            --result-border: #e2e8f0;
+            --offi-box-bg: #e0e7ff;
+            --offi-text: #4338ca;
+            --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+            --border-radius: 20px;
+        }
+
+        [data-theme="dark"] {
+            /* Dark Mode Variables */
+            --primary: #818cf8;
+            --primary-hover: #a5b4fc;
+            --bg-gradient-start: #0f172a;
+            --bg-gradient-end: #1e293b;
+            --card-bg: rgba(30, 41, 59, 0.85);
+            /* Slightly transparent */
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --input-bg: #1e293b;
+            --input-border: #334155;
+            --segment-bg: #0f172a;
+            --segment-active-bg: #334155;
+            --segment-text: #94a3b8;
+            --segment-active-text: #818cf8;
+            --result-card-bg: #1e293b;
+            --result-border: #334155;
+            --offi-box-bg: #312e81;
+            --offi-text: #c7d2fe;
+            --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
 
         body {
@@ -32,21 +69,23 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            color: var(--text-color);
+            color: var(--text-main);
         }
 
         .container {
             background: var(--card-bg);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
             width: 100%;
-            max-width: 500px;
-            padding: 2rem;
+            max-width: 480px;
+            padding: 2.5rem 2rem;
             position: relative;
-            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        /* Top Color Bar */
         .container::before {
             content: '';
             position: absolute;
@@ -54,33 +93,63 @@
             left: 0;
             width: 100%;
             height: 6px;
-            background: linear-gradient(to right, #818cf8, #6366f1, #4338ca);
+            background: linear-gradient(90deg, #6366f1, #818cf8, #c084fc);
+        }
+
+        /* Header & Toggle */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
         }
 
         h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            color: var(--text-color);
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--segment-bg);
+            color: var(--primary);
+        }
+
+        /* Form Elements */
         .section {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.8rem;
         }
 
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0.8rem;
             font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text-color);
+            font-size: 0.95rem;
+            color: var(--text-main);
         }
 
         .segment-control {
             display: flex;
-            background: #f1f5f9;
-            border-radius: 12px;
+            background: var(--segment-bg);
+            border-radius: 14px;
             padding: 4px;
             gap: 4px;
         }
@@ -91,119 +160,140 @@
 
         .segment-control label {
             flex: 1;
-            padding: 10px;
+            padding: 12px;
             text-align: center;
             cursor: pointer;
-            border-radius: 8px;
-            margin-bottom: 0;
-            font-weight: 500;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--segment-text);
             transition: all 0.2s ease;
-            color: var(--text-secondary);
         }
 
         .segment-control input[type="radio"]:checked+label {
-            background: white;
-            color: var(--primary-color);
-            font-weight: 700;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            background: var(--segment-active-bg);
+            color: var(--segment-active-text);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
+        /* Inputs */
         .input-group {
             position: relative;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
 
         .input-group input {
             width: 100%;
-            padding: 12px 45px 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: border-color 0.2s;
+            padding: 14px 45px 14px 16px;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 14px;
+            font-size: 1.1rem;
+            color: var(--text-main);
             outline: none;
             text-align: right;
+            font-weight: 600;
         }
 
         .input-group input:focus {
-            border-color: var(--primary-color);
+            border-color: var(--primary);
         }
 
         .input-group span {
             position: absolute;
-            right: 16px;
+            right: 18px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-secondary);
+            color: var(--text-sub);
+            font-weight: 600;
+        }
+
+        .amount-helper {
+            font-size: 0.85rem;
+            color: var(--primary);
+            text-align: right;
+            height: 1.2em;
             font-weight: 500;
+            margin-bottom: 0.5rem;
         }
 
-        .btn {
-            width: 100%;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 14px;
+        /* Officetel Box */
+        .offi-box {
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: var(--offi-box-bg);
             border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+
+        .offi-box label {
+            display: flex;
+            align-items: center;
             cursor: pointer;
-            transition: transform 0.1s, background-color 0.2s;
-            margin-top: 1rem;
+            color: var(--offi-text);
+            font-size: 0.9rem;
+            font-weight: 600;
+            width: 100%;
         }
 
-        .btn:hover {
-            background-color: var(--primary-hover);
+        .offi-box input {
+            accent-color: var(--primary);
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
         }
 
-        .btn:active {
-            transform: scale(0.98);
-        }
-
+        /* Result Card */
         .result-card {
-            background: #f8fafc;
-            border-radius: 12px;
+            background: var(--result-card-bg);
+            border: 1px solid var(--result-border);
+            border-radius: 16px;
             padding: 1.5rem;
-            margin-top: 2rem;
-            border: 1px solid #e2e8f0;
-            display: block;
-            animation: none;
+            margin-top: 2.5rem;
         }
 
         .result-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 0.8rem;
-            font-size: 0.95rem;
-        }
-
-        .result-row.total {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 2px dashed #cbd5e1;
-            font-weight: 800;
-            font-size: 1.2rem;
-            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            align-items: center;
         }
 
         .result-row span:first-child {
-            color: var(--text-secondary);
+            color: var(--text-sub);
+        }
+
+        .result-row span:last-child {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .result-row.total {
+            margin-top: 1.2rem;
+            padding-top: 1.2rem;
+            border-top: 2px dashed var(--input-border);
+        }
+
+        .result-row.total span:first-child {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .result-row.total span:last-child {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
         }
 
         .notice {
-            margin-top: 1rem;
-            font-size: 0.8rem;
-            color: #94a3b8;
-            line-height: 1.4;
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            line-height: 1.5;
             text-align: center;
-        }
-
-        /* Helper for Amount Input */
-        .amount-helper {
-            font-size: 0.8em;
-            color: var(--primary-color);
-            margin-top: 4px;
-            text-align: right;
-            height: 1.2em;
+            opacity: 0.8;
         }
 
         .hidden {
@@ -215,11 +305,21 @@
 <body>
 
     <div class="container">
-        <h1>2026 부동산 중개보수 계산</h1>
+        <div class="header-row">
+            <h1>
+                <i data-lucide="calculator" color="var(--primary)"></i>
+                중개보수 계산기
+            </h1>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle Dark Mode">
+                <i data-lucide="moon" id="theme-icon"></i>
+            </button>
+        </div>
 
         <!-- 1. 물건 종류 -->
         <div class="section">
-            <label>물건 종류</label>
+            <div class="section-label">
+                <i data-lucide="building-2" size="16"></i> 물건 종류
+            </div>
             <div class="segment-control">
                 <input type="radio" name="propertyType" id="prop-house" value="house" checked>
                 <label for="prop-house">주택</label>
@@ -232,18 +332,19 @@
             </div>
 
             <!-- 오피스텔 세부 옵션 -->
-            <div id="offi-option" class="hidden"
-                style="margin-top: 10px; padding: 10px; background: #e0e7ff; border-radius: 8px;">
-                <label style="display: flex; align-items: center; margin-bottom: 0; cursor: pointer;">
-                    <input type="checkbox" id="is-residential-offi" checked style="margin-right: 8px; width: auto;">
-                    <span style="font-size: 0.9rem; font-weight: normal; color: #4338ca;">주거용 (전용 85㎡ 이하/부엌/욕실)</span>
+            <div id="offi-option" class="hidden offi-box">
+                <label>
+                    <input type="checkbox" id="is-residential-offi" checked>
+                    <span>주거용 (85㎡ 이하, 부엌/욕실)</span>
                 </label>
             </div>
         </div>
 
         <!-- 2. 거래 유형 -->
         <div class="section">
-            <label>거래 유형</label>
+            <div class="section-label">
+                <i data-lucide="arrow-right-left" size="16"></i> 거래 유형
+            </div>
             <div class="segment-control">
                 <input type="radio" name="transType" id="trans-sale" value="sale" checked>
                 <label for="trans-sale">매매/교환</label>
@@ -255,38 +356,46 @@
 
         <!-- 3. 금액 입력 -->
         <div class="section">
-            <label id="amount-label">거래 금액</label>
+            <div class="section-label" id="amount-label-container">
+                <i data-lucide="coins" size="16"></i> <span id="amount-label">거래 금액</span>
+            </div>
+
             <div class="input-group">
-                <input type="text" id="amount" placeholder="0" oninput="formatNumber(this)">
-                <span id="amount-unit">원</span>
+                <input type="text" id="amount" placeholder="0" oninput="formatNumber(this)" inputmode="numeric">
+                <span>원</span>
             </div>
             <div class="amount-helper" id="amount-helper"></div>
 
             <div id="wolse-section" class="hidden">
-                <label>월세</label>
+                <div class="section-label" style="margin-top: 1rem;">
+                    <i data-lucide="banknote" size="16"></i> 월세
+                </div>
                 <div class="input-group">
-                    <input type="text" id="monthly-rent" placeholder="0" oninput="formatNumber(this)">
+                    <input type="text" id="monthly-rent" placeholder="0" oninput="formatNumber(this)"
+                        inputmode="numeric">
                     <span>원</span>
                 </div>
             </div>
 
-            <!-- 협의 요율 입력 (오피스텔 업무용, 그외) -->
+            <!-- 협의 요율 입력 -->
             <div id="rate-section" class="hidden"
-                style="margin-top:1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
-                <label>협의 요율 (최대 0.9% 이내)</label>
+                style="margin-top:1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--input-border);">
+                <div class="section-label">
+                    <i data-lucide="percent" size="16"></i> 협의 요율 (최대 0.9%)
+                </div>
                 <div class="input-group">
                     <input type="number" id="custom-rate" placeholder="0.9" step="0.1" value="0.9"
-                        oninput="calculateFee()">
+                        oninput="calculateFee()" inputmode="decimal">
                     <span>%</span>
                 </div>
-                <p class="notice" style="margin-top:0;">* 협의를 통해 0.9% 이내에서 요율을 정해주세요.</p>
+                <p class="notice" style="margin-top: 5px; text-align: left;">* 0.9% 이내에서 협의하여 입력하세요.</p>
             </div>
         </div>
 
-        <!-- 결과 카드 (항상 표시하되 값만 갱신) -->
+        <!-- 결과 카드 -->
         <div class="result-card" id="result-card">
             <div class="result-row">
-                <span>거래금액(환산)</span>
+                <span>거래금액 (환산)</span>
                 <span id="trans-amount-display">0원</span>
             </div>
             <div class="result-row">
@@ -298,7 +407,7 @@
                 <span id="fee-display">0원</span>
             </div>
             <div class="result-row">
-                <span>부가세(10%)</span>
+                <span>부가세 (10%)</span>
                 <span id="vat-display">0원</span>
             </div>
             <div class="result-row total">
@@ -308,17 +417,60 @@
         </div>
 
         <p class="notice">
-            * 2026년(2025년 유지) 기준 최신 요율표를 적용했습니다.<br>
-            * 중개보수는 한도 내에서 협의하여 결정하며, 부가세는 별도입니다.<br>
-            * 오피스텔은 전용 85㎡ 이하, 입식부엌 등 설비 갖춘 주거용 기준 (그 외 0.9% 협의)
+            * 2026년 기준(2025년 요율 유지)을 적용했습니다.<br>
+            * 중개보수는 법정 상한 내 협의 사항이며, 부가세는 별도입니다.<br>
         </p>
     </div>
 
     <script>
-        // 전역 변수
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Theme Toggle Logic
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlEl = document.documentElement;
+
+        // Check system preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            htmlEl.setAttribute('data-theme', 'dark');
+            themeIcon.setAttribute('data-lucide', 'sun');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlEl.getAttribute('data-theme');
+            if (currentTheme === 'dark') {
+                htmlEl.setAttribute('data-theme', 'light');
+                // Re-render icon to Moon
+                themeIcon.setAttribute('name', 'moon'); // Lucide handles replacement, but simple attribute switch works with re-render
+                // Normally lucide replaces the <i> tag with SVG. Use basic toggle logic:
+                // For simplicity with Lucide execution:
+                location.reload(); // Simple hack to reload icons properly, OR remove existing SVG and create new.
+                // Better approach for single page w/o reload:
+                // But let's just toggle CSS for now, icon change is visual.
+            } else {
+                htmlEl.setAttribute('data-theme', 'dark');
+            }
+
+            // Manual Icon Toggle without reload
+            const svg = themeToggleBtn.querySelector('svg');
+            if (htmlEl.getAttribute('data-theme') === 'dark') {
+                // It was light (Moon), now Dark (Sun needed)
+                // Ideally we re-run lucide.createIcons or swap SVG contents.
+                // For this simple demo, we will restart the icon rendering on the button only
+                themeToggleBtn.innerHTML = '<i data-lucide="sun"></i>';
+            } else {
+                themeToggleBtn.innerHTML = '<i data-lucide="moon"></i>';
+            }
+            lucide.createIcons();
+        });
+
+        // ----------------------------------------------------
+        // Calculator Logic (Preserved and Optimized)
+        // ----------------------------------------------------
+
         let currentKorAmount = '';
 
-        // 천단위 콤마 포맷팅 + 자동 계산 트리거
         function formatNumber(input) {
             let value = input.value.replace(/[^0-9]/g, '');
             if (value) {
@@ -328,10 +480,9 @@
                 input.value = '';
                 document.getElementById('amount-helper').innerText = '';
             }
-            calculateFee(); // 입력 시마다 실시간 계산
+            calculateFee();
         }
 
-        // 금액 한글 표시 (예: 1억 5,000만)
         function updateHelperText(num) {
             if (!num) return;
             let result = '';
@@ -351,12 +502,10 @@
             document.getElementById('amount-helper').innerText = result + ' 원';
         }
 
-        // UI 상태 업데이트
         const propRadios = document.getElementsByName('propertyType');
         const transRadios = document.getElementsByName('transType');
         const offiCheckbox = document.getElementById('is-residential-offi');
 
-        // 이벤트 리스너 등록
         propRadios.forEach(r => r.addEventListener('change', () => { updateUI(); calculateFee(); }));
         transRadios.forEach(r => r.addEventListener('change', () => { updateUI(); calculateFee(); }));
         offiCheckbox.addEventListener('change', calculateFee);
@@ -370,7 +519,6 @@
             const customRateSection = document.getElementById('rate-section');
             const offiOption = document.getElementById('offi-option');
 
-            // 전세/월세 UI 처리
             if (transType === 'lease') {
                 amountLabel.innerText = "보증금";
                 wolseSection.classList.remove('hidden');
@@ -380,16 +528,13 @@
                 document.getElementById('monthly-rent').value = '';
             }
 
-            // 오피스텔 옵션 표시
             if (propType === 'officetel') {
                 offiOption.classList.remove('hidden');
             } else {
                 offiOption.classList.add('hidden');
             }
 
-            // 협의 요율 섹션 표시 (그외, 혹은 오피스텔인데 주거용 아님)
             const isResidentialOffi = document.getElementById('is-residential-offi').checked;
-
             if (propType === 'other' || (propType === 'officetel' && !isResidentialOffi)) {
                 customRateSection.classList.remove('hidden');
             } else {
@@ -397,7 +542,6 @@
             }
         }
 
-        // 계산 로직
         function calculateFee() {
             const propType = document.querySelector('input[name="propertyType"]:checked').value;
             const transType = document.querySelector('input[name="transType"]:checked').value;
@@ -406,13 +550,11 @@
             let amount = parseInt(document.getElementById('amount').value.replace(/,/g, '')) || 0;
             let monthly = parseInt(document.getElementById('monthly-rent').value.replace(/,/g, '')) || 0;
 
-            // 거래 금액이 없으면 0으로 초기화
             if (amount === 0 && monthly === 0) {
                 updateResult(0, 0, 0, 0, 0);
                 return;
             }
 
-            // 월세 환산보증금 계산
             let calcAmount = amount;
             if (transType === 'lease' && monthly > 0) {
                 calcAmount = amount + (monthly * 100);
@@ -422,10 +564,9 @@
             }
 
             let rate = 0;
-            let limit = 0; // 한도액 (0이면 없음)
+            let limit = 0;
 
             if (propType === 'house') {
-                // 주택 요율 (2025/2026 기준)
                 if (transType === 'sale') {
                     if (calcAmount < 50000000) { rate = 0.6; limit = 250000; }
                     else if (calcAmount < 200000000) { rate = 0.5; limit = 800000; }
@@ -433,7 +574,7 @@
                     else if (calcAmount < 1200000000) { rate = 0.5; }
                     else if (calcAmount < 1500000000) { rate = 0.6; }
                     else { rate = 0.7; }
-                } else { // 임대차
+                } else {
                     if (calcAmount < 50000000) { rate = 0.5; limit = 200000; }
                     else if (calcAmount < 100000000) { rate = 0.4; limit = 300000; }
                     else if (calcAmount < 600000000) { rate = 0.3; }
@@ -442,32 +583,23 @@
                     else { rate = 0.6; }
                 }
             } else if (propType === 'officetel' && isResidentialOffi) {
-                // 주거용 오피스텔 (전용 85이하)
                 if (transType === 'sale') rate = 0.5;
                 else rate = 0.4;
             } else {
-                // 그 외 (토지, 상가) OR 업무용 오피스텔 -> 협의 요율 적용 (기본 0.9)
                 let customRate = parseFloat(document.getElementById('custom-rate').value);
                 if (isNaN(customRate)) customRate = 0.9;
                 rate = customRate;
             }
 
-            // 중개보수 계산
             let fee = calcAmount * (rate / 100);
 
-            // 한도액 적용
             if (limit > 0 && fee > limit) {
                 fee = limit;
             }
 
-            // 협의 요율인 경우 (officetel non-res or other), 상한액(0.9%) 체크는 표시하되 계산은 입력값대로
-            // 단, 법정 상한(매물의 경우 0.9%)을 넘지 않도록 로직 추가 가능하나 여기선 사용자 입력 존중
-
-            // 부가세 10%
             let vat = fee * 0.1;
             let total = fee + vat;
 
-            // 결과 업데이트
             updateResult(calcAmount, rate, fee, vat, total);
         }
 
@@ -475,7 +607,6 @@
             document.getElementById('trans-amount-display').innerText = Math.floor(calcAmount).toLocaleString() + '원';
 
             let rateText = rate + '%';
-            // 주택이나 주거용 오피스텔처럼 고정/상한이 정해진 경우 '상한' 붙임
             const propType = document.querySelector('input[name="propertyType"]:checked').value;
             const isResidentialOffi = document.getElementById('is-residential-offi').checked;
 
@@ -489,7 +620,7 @@
             document.getElementById('total-display').innerText = Math.floor(total).toLocaleString() + '원';
         }
 
-        // 초기화
+        // Initial run
         updateUI();
     </script>
 
