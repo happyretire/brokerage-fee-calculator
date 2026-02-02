@@ -165,20 +165,8 @@
             padding: 1.5rem;
             margin-top: 2rem;
             border: 1px solid #e2e8f0;
-            display: none;
-            animation: slideDown 0.3s ease-out;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            display: block;
+            animation: none;
         }
 
         .result-row {
@@ -239,18 +227,17 @@
                 <input type="radio" name="propertyType" id="prop-offi" value="officetel">
                 <label for="prop-offi">오피스텔</label>
 
-                <!-- 오피스텔 세부 옵션 -->
-                <div id="offi-option" class="hidden"
-                    style="margin-top: 10px; padding: 10px; background: #e0e7ff; border-radius: 8px;">
-                    <label style="display: flex; align-items: center; margin-bottom: 0; cursor: pointer;">
-                        <input type="checkbox" id="is-residential-offi" checked style="margin-right: 8px; width: auto;">
-                        <span style="font-size: 0.9rem; font-weight: normal; color: #4338ca;">주거용 (전용 85㎡
-                            이하/부엌/욕실)</span>
-                    </label>
-                </div>
-
                 <input type="radio" name="propertyType" id="prop-other" value="other">
                 <label for="prop-other">그 외</label>
+            </div>
+
+            <!-- 오피스텔 세부 옵션 -->
+            <div id="offi-option" class="hidden"
+                style="margin-top: 10px; padding: 10px; background: #e0e7ff; border-radius: 8px;">
+                <label style="display: flex; align-items: center; margin-bottom: 0; cursor: pointer;">
+                    <input type="checkbox" id="is-residential-offi" checked style="margin-right: 8px; width: auto;">
+                    <span style="font-size: 0.9rem; font-weight: normal; color: #4338ca;">주거용 (전용 85㎡ 이하/부엌/욕실)</span>
+                </label>
             </div>
         </div>
 
@@ -296,9 +283,8 @@
             </div>
         </div>
 
-        <!-- 버튼 제거됨 (실시간 계산) -->
-
-        <div class="result-card" id="result-card" style="display: block; animation: none;">
+        <!-- 결과 카드 (항상 표시하되 값만 갱신) -->
+        <div class="result-card" id="result-card">
             <div class="result-row">
                 <span>거래금액(환산)</span>
                 <span id="trans-amount-display">0원</span>
@@ -332,7 +318,7 @@
         // 전역 변수
         let currentKorAmount = '';
 
-        // 천단위 콤마 포맷팅
+        // 천단위 콤마 포맷팅 + 자동 계산 트리거
         function formatNumber(input) {
             let value = input.value.replace(/[^0-9]/g, '');
             if (value) {
@@ -342,6 +328,7 @@
                 input.value = '';
                 document.getElementById('amount-helper').innerText = '';
             }
+            calculateFee(); // 입력 시마다 실시간 계산
         }
 
         // 금액 한글 표시 (예: 1억 5,000만)
@@ -367,6 +354,12 @@
         // UI 상태 업데이트
         const propRadios = document.getElementsByName('propertyType');
         const transRadios = document.getElementsByName('transType');
+        const offiCheckbox = document.getElementById('is-residential-offi');
+
+        // 이벤트 리스너 등록
+        propRadios.forEach(r => r.addEventListener('change', () => { updateUI(); calculateFee(); }));
+        transRadios.forEach(r => r.addEventListener('change', () => { updateUI(); calculateFee(); }));
+        offiCheckbox.addEventListener('change', calculateFee);
 
         function updateUI() {
             const propType = document.querySelector('input[name="propertyType"]:checked').value;
@@ -375,7 +368,7 @@
             const wolseSection = document.getElementById('wolse-section');
             const amountLabel = document.getElementById('amount-label');
             const customRateSection = document.getElementById('rate-section');
-            const maxRateDisplay = document.getElementById('max-rate-display');
+            const offiOption = document.getElementById('offi-option');
 
             // 전세/월세 UI 처리
             if (transType === 'lease') {
@@ -387,24 +380,37 @@
                 document.getElementById('monthly-rent').value = '';
             }
 
-            // 오피스텔/그외 협의요율 표시 로직
-            // 단순화를 위해 UI에서는 기본적으로 자동 계산하되, 
-            // '그 외'인 경우 계산기 로직 내부에서 0.9% Max를 보여줌.
-            // 실제 앱에서는 사용자 입력이 필요할 수 있으나, 여기서는 "단순 제작" 요청에 맞춰 자동 최대요율 적용 후 결과 보여주기로 처리.
-            // 다만 '그 외'나 '오피스텔(도 업무용일수있음)' 고려하여...
-            // 이번 버전은 "자동 계산" 위주로 하되, 주택 외는 0.9% 상한으로 계산한다고 가정.
+            // 오피스텔 옵션 표시
+            if (propType === 'officetel') {
+                offiOption.classList.remove('hidden');
+            } else {
+                offiOption.classList.add('hidden');
+            }
+
+            // 협의 요율 섹션 표시 (그외, 혹은 오피스텔인데 주거용 아님)
+            const isResidentialOffi = document.getElementById('is-residential-offi').checked;
+
+            if (propType === 'other' || (propType === 'officetel' && !isResidentialOffi)) {
+                customRateSection.classList.remove('hidden');
+            } else {
+                customRateSection.classList.add('hidden');
+            }
         }
 
-        propRadios.forEach(r => r.addEventListener('change', updateUI));
-        transRadios.forEach(r => r.addEventListener('change', updateUI));
-        updateUI(); // 초기실행
-
+        // 계산 로직
         function calculateFee() {
             const propType = document.querySelector('input[name="propertyType"]:checked').value;
             const transType = document.querySelector('input[name="transType"]:checked').value;
+            const isResidentialOffi = document.getElementById('is-residential-offi').checked;
 
             let amount = parseInt(document.getElementById('amount').value.replace(/,/g, '')) || 0;
             let monthly = parseInt(document.getElementById('monthly-rent').value.replace(/,/g, '')) || 0;
+
+            // 거래 금액이 없으면 0으로 초기화
+            if (amount === 0 && monthly === 0) {
+                updateResult(0, 0, 0, 0, 0);
+                return;
+            }
 
             // 월세 환산보증금 계산
             let calcAmount = amount;
@@ -435,13 +441,15 @@
                     else if (calcAmount < 1500000000) { rate = 0.5; }
                     else { rate = 0.6; }
                 }
-            } else if (propType === 'officetel') {
-                // 주거용 오피스텔 (전용 85이하) 가정
+            } else if (propType === 'officetel' && isResidentialOffi) {
+                // 주거용 오피스텔 (전용 85이하)
                 if (transType === 'sale') rate = 0.5;
                 else rate = 0.4;
             } else {
-                // 그 외 (토지, 상가 등)
-                rate = 0.9;
+                // 그 외 (토지, 상가) OR 업무용 오피스텔 -> 협의 요율 적용 (기본 0.9)
+                let customRate = parseFloat(document.getElementById('custom-rate').value);
+                if (isNaN(customRate)) customRate = 0.9;
+                rate = customRate;
             }
 
             // 중개보수 계산
@@ -452,19 +460,37 @@
                 fee = limit;
             }
 
+            // 협의 요율인 경우 (officetel non-res or other), 상한액(0.9%) 체크는 표시하되 계산은 입력값대로
+            // 단, 법정 상한(매물의 경우 0.9%)을 넘지 않도록 로직 추가 가능하나 여기선 사용자 입력 존중
+
             // 부가세 10%
             let vat = fee * 0.1;
             let total = fee + vat;
 
-            // 결과 표시
+            // 결과 업데이트
+            updateResult(calcAmount, rate, fee, vat, total);
+        }
+
+        function updateResult(calcAmount, rate, fee, vat, total) {
             document.getElementById('trans-amount-display').innerText = Math.floor(calcAmount).toLocaleString() + '원';
-            document.getElementById('fee-rate-display').innerText = '상한 ' + rate + '%';
+
+            let rateText = rate + '%';
+            // 주택이나 주거용 오피스텔처럼 고정/상한이 정해진 경우 '상한' 붙임
+            const propType = document.querySelector('input[name="propertyType"]:checked').value;
+            const isResidentialOffi = document.getElementById('is-residential-offi').checked;
+
+            if (propType === 'house' || (propType === 'officetel' && isResidentialOffi)) {
+                rateText = '상한 ' + rateText;
+            }
+
+            document.getElementById('fee-rate-display').innerText = rateText;
             document.getElementById('fee-display').innerText = Math.floor(fee).toLocaleString() + '원';
             document.getElementById('vat-display').innerText = Math.floor(vat).toLocaleString() + '원';
             document.getElementById('total-display').innerText = Math.floor(total).toLocaleString() + '원';
-
-            document.getElementById('result-card').style.display = 'block';
         }
+
+        // 초기화
+        updateUI();
     </script>
 
 </body>
