@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 부동산 중개보수 & 취득세 계산기</title>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            /* Light Mode Variables (Default) */
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-gradient-start: #f8fafc;
+            --bg-gradient-end: #cbd5e1;
+            --card-bg: rgba(255, 255, 255, 0.90);
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --input-bg: #ffffff;
+            --input-border: #e2e8f0;
+            --segment-bg: #f1f5f9;
+            --segment-active-bg: #ffffff;
+            --segment-text: #64748b;
+            --segment-active-text: #6366f1;
+            --result-card-bg: #f8fafc;
+            --result-border: #e2e8f0;
+            --offi-box-bg: #e0e7ff;
+            --offi-text: #4338ca;
+            --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+            --border-radius: 20px;
+        }
+
+        [data-theme="dark"] {
+            /* Dark Mode Variables */
+            --primary: #818cf8;
+            --primary-hover: #a5b4fc;
+            --bg-gradient-start: #0f172a;
+            --bg-gradient-end: #1e293b;
+            --card-bg: rgba(30, 41, 59, 0.85);
+            /* Slightly transparent */
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --input-bg: #1e293b;
+            --input-border: #334155;
+            --segment-bg: #0f172a;
+            --segment-active-bg: #334155;
+            --segment-text: #94a3b8;
+            --segment-active-text: #818cf8;
+            --result-card-bg: #1e293b;
+            --result-border: #334155;
+            --offi-box-bg: #312e81;
+            --offi-text: #c7d2fe;
+            --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--text-main);
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 480px;
+            padding: 2.5rem 2rem;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Top Color Bar */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, #6366f1, #818cf8, #c084fc);
+        }
+
+        /* Header & Toggle */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--segment-bg);
+            color: var(--primary);
+        }
+
+        /* Form Elements */
+        .section {
+            margin-bottom: 1.8rem;
+        }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .segment-control {
+            display: flex;
+            background: var(--segment-bg);
+            border-radius: 14px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .segment-control input[type="radio"] {
+            display: none;
+        }
+
+        .segment-control label {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--segment-text);
+            transition: all 0.2s ease;
+        }
+
+        .segment-control input[type="radio"]:checked+label {
+            background: var(--segment-active-bg);
+            color: var(--segment-active-text);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Inputs */
+        .input-group {
+            position: relative;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 45px 14px 16px;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 14px;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            outline: none;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+        }
+
+        .input-group span {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-sub);
+            font-weight: 600;
+        }
+
+        .amount-helper {
+            font-size: 0.85rem;
+            color: var(--primary);
+            text-align: right;
+            height: 1.2em;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Officetel Box */
+        .offi-box {
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: var(--offi-box-bg);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .offi-box label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: var(--offi-text);
+            font-size: 0.9rem;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .offi-box input {
+            accent-color: var(--primary);
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+        }
+
+        /* Result Card */
+        .result-card {
+            background: var(--result-card-bg);
+            border: 1px solid var(--result-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 2.5rem;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            align-items: center;
+        }
+
+        .result-row span:first-child {
+            color: var(--text-sub);
+        }
+
+        .result-row span:last-child {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .result-row.total {
+            margin-top: 1.2rem;
+            padding-top: 1.2rem;
+            border-top: 2px dashed var(--input-border);
+        }
+
+        .result-row.total span:first-child {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .result-row.total span:last-child {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .notice {
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            line-height: 1.5;
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header-row">
+            <h1>
+                <i data-lucide="calculator" color="var(--primary)"></i>
+                부동산 중개보수 & 취득세 계산기
+            </h1>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle Dark Mode">
+                <i data-lucide="moon" id="theme-icon"></i>
+            </button>
+        </div>
+
+        <!-- 1. 물건 종류 -->
+        <div class="section">
+            <div class="section-label">
+                <i data-lucide="building-2" size="16"></i> 물건 종류
+            </div>
+            <div class="segment-control">
+                <input type="radio" name="propertyType" id="prop-house" value="house" checked>
+                <label for="prop-house">주택</label>
+
+                <input type="radio" name="propertyType" id="prop-offi" value="officetel">
+                <label for="prop-offi">오피스텔</label>
+
+                <input type="radio" name="propertyType" id="prop-other" value="other">
+                <label for="prop-other">그 외</label>
+            </div>
+
+            <!-- 오피스텔 세부 옵션 -->
+            <div id="offi-option" class="hidden offi-box">
+                <label>
+                    <input type="checkbox" id="is-residential-offi" checked>
+                    <span>주거용 (85㎡ 이하, 부엌/욕실)</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- 2. 거래 유형 -->
+        <div class="section">
+            <div class="section-label">
+                <i data-lucide="arrow-right-left" size="16"></i> 거래 유형
+            </div>
+            <div class="segment-control">
+                <input type="radio" name="transType" id="trans-sale" value="sale" checked>
+                <label for="trans-sale">매매/교환</label>
+
+                <input type="radio" name="transType" id="trans-lease" value="lease">
+                <label for="trans-lease">전세/월세</label>
+            </div>
+        </div>
+
+        <!-- 3. 금액 입력 -->
+        <div class="section">
+            <div class="section-label" id="amount-label-container">
+                <i data-lucide="coins" size="16"></i> <span id="amount-label">거래 금액</span>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="amount" placeholder="0" oninput="formatNumber(this)" inputmode="numeric">
+                <span>원</span>
+            </div>
+            <div class="amount-helper" id="amount-helper"></div>
+
+            <div id="wolse-section" class="hidden">
+                <div class="section-label" style="margin-top: 1rem;">
+                    <i data-lucide="banknote" size="16"></i> 월세
+                </div>
+                <div class="input-group">
+                    <input type="text" id="monthly-rent" placeholder="0" oninput="formatNumber(this)"
+                        inputmode="numeric">
+                    <span>원</span>
+                </div>
+            </div>
+
+            <!-- 협의 요율 입력 -->
+            <div id="rate-section" class="hidden"
+                style="margin-top:1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--input-border);">
+                <div class="section-label">
+                    <i data-lucide="percent" size="16"></i> 협의 요율 (최대 0.9%)
+                </div>
+                <div class="input-group">
+                    <input type="number" id="custom-rate" placeholder="0.9" step="0.1" value="0.9"
+                        oninput="calculateFee()" inputmode="decimal">
+                    <span>%</span>
+                </div>
+                <p class="notice" style="margin-top: 5px; text-align: left;">* 0.9% 이내에서 협의하여 입력하세요.</p>
+            </div>
+
+            <!-- 4. 취득세 정보 (매매 시에만 표시) -->
+            <div id="acquisition-tax-section" class="section hidden" style="margin-top:1.5rem;">
+                <div class="section-label">
+                    <i data-lucide="landmark" size="16"></i> 취득세 정보
+                </div>
+
+                <!-- 주택 수 선택 -->
+                <!-- 주택 수 선택 -->
+                <div style="margin-bottom: 1rem;" id="house-count-row">
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-sub); font-weight: 500;">보유 주택
+                        수 (취득 후 기준)</p>
+                    <div class="segment-control">
+                        <input type="radio" name="houseCount" id="house-1" value="1" checked>
+                        <label for="house-1">1주택</label>
+
+                        <input type="radio" name="houseCount" id="house-2" value="2">
+                        <label for="house-2">2주택</label>
+
+                        <input type="radio" name="houseCount" id="house-3" value="3">
+                        <label for="house-3">3주택</label>
+
+                        <input type="radio" name="houseCount" id="house-4" value="4">
+                        <label for="house-4">4주택+</label>
+                    </div>
+                </div>
+
+                <!-- 추가 옵션 (조정지역, 85초과) -->
+                <div class="offi-box" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                    <label id="adjusted-area-label">
+                        <input type="checkbox" id="is-adjusted-area">
+                        <span>조정대상지역</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="is-over-85">
+                        <span>전용면적 85㎡ 초과 (농특세 추가)</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 결과 카드 -->
+        <div class="result-card" id="result-card">
+            <div class="result-row">
+                <span>거래금액 (환산)</span>
+                <span id="trans-amount-display">0원</span>
+            </div>
+            <div class="result-row">
+                <span>적용요율</span>
+                <span id="fee-rate-display">0%</span>
+            </div>
+            <div class="result-row">
+                <span>중개보수</span>
+                <span id="fee-display">0원</span>
+            </div>
+            <div class="result-row">
+                <span>부가세 (10%)</span>
+                <span id="vat-display">0원</span>
+            </div>
+            <div class="result-row hidden" id="tax-row">
+                <span>예상 취득세</span>
+                <span id="tax-display" style="color: var(--primary); font-weight: 600;">0원</span>
+            </div>
+            <div class="result-row total">
+                <span>총 예상금액</span>
+                <span id="total-display">0원</span>
+            </div>
+        </div>
+
+        <p class="notice">
+            * 2026년 기준(2025년 요율 유지)을 적용했습니다.<br>
+            * 중개보수는 법정 상한 내 협의 사항이며, 부가세는 별도입니다.<br>
+            * 취득세는 주요 감면 및 특례 사항(생애최초 등)이 반영되지 않았습니다.<br>
+        </p>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Theme Toggle Logic
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlEl = document.documentElement;
+
+        // Check system preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            htmlEl.setAttribute('data-theme', 'dark');
+            themeIcon.setAttribute('data-lucide', 'sun');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlEl.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            htmlEl.setAttribute('data-theme', newTheme);
+
+            // Icon Toggle
+            if (newTheme === 'dark') {
+                themeToggleBtn.innerHTML = '<i data-lucide="sun"></i>';
+            } else {
+                themeToggleBtn.innerHTML = '<i data-lucide="moon"></i>';
+            }
+            lucide.createIcons();
+        });
+
+        // ----------------------------------------------------
+        // Calculator Logic (Preserved and Optimized)
+        // ----------------------------------------------------
+
+        let currentKorAmount = '';
+
+        function formatNumber(input) {
+            let value = input.value.replace(/[^0-9]/g, '');
+            if (value) {
+                input.value = parseInt(value).toLocaleString();
+                updateHelperText(parseInt(value));
+            } else {
+                input.value = '';
+                document.getElementById('amount-helper').innerText = '';
+            }
+            calculateFee();
+        }
+
+        function updateHelperText(num) {
+            if (!num) return;
+            let result = '';
+            const man = 10000;
+            const eok = 100000000;
+
+            if (num >= eok) {
+                let eokPart = Math.floor(num / eok);
+                let remainder = num % eok;
+                result += eokPart + '억 ';
+                if (remainder > 0) {
+                    result += (remainder / man).toLocaleString() + '만';
+                }
+            } else {
+                result += (num / man).toLocaleString() + '만';
+            }
+            document.getElementById('amount-helper').innerText = result + ' 원';
+        }
+
+        const propRadios = document.getElementsByName('propertyType');
+        const transRadios = document.getElementsByName('transType');
+        const offiCheckbox = document.getElementById('is-residential-offi');
+
+        // Acquisition Tax Inputs
+        const taxRadios = document.getElementsByName('houseCount');
+        const taxCheckboxes = [document.getElementById('is-adjusted-area'), document.getElementById('is-over-85')];
+
+        propRadios.forEach(r => r.addEventListener('change', () => { updateUI(); calculateFee(); }));
+        transRadios.forEach(r => r.addEventListener('change', () => { updateUI(); calculateFee(); }));
+        offiCheckbox.addEventListener('change', () => { updateUI(); calculateFee(); });
+
+        taxRadios.forEach(r => r.addEventListener('change', calculateFee));
+        taxCheckboxes.forEach(c => c.addEventListener('change', calculateFee));
+
+        function updateUI() {
+            const propType = document.querySelector('input[name="propertyType"]:checked').value;
+            const transType = document.querySelector('input[name="transType"]:checked').value;
+
+            const wolseSection = document.getElementById('wolse-section');
+            const amountLabel = document.getElementById('amount-label');
+            const customRateSection = document.getElementById('rate-section');
+            const offiOption = document.getElementById('offi-option');
+            const taxSection = document.getElementById('acquisition-tax-section');
+            const taxRow = document.getElementById('tax-row');
+
+            if (transType === 'lease') {
+                amountLabel.innerText = "보증금";
+                wolseSection.classList.remove('hidden');
+                taxSection.classList.add('hidden');
+                taxRow.classList.add('hidden');
+            } else {
+                amountLabel.innerText = "매매/교환 금액";
+                wolseSection.classList.add('hidden');
+                document.getElementById('monthly-rent').value = '';
+
+                // Show tax section only for 'house'
+                // Actually Acquisition Tax applies to all, but the complex logic is mainly for houses.
+                // For simplified UX, let's show it for all 'sale' types, but disable house-count for non-houses if needed.
+                // Current Requirement: "Calculated based on house count". 
+                // Let's show it always for Sale, but logic differs.
+                taxSection.classList.remove('hidden');
+                taxRow.classList.remove('hidden');
+            }
+
+            if (propType === 'officetel') {
+                offiOption.classList.remove('hidden');
+            } else {
+                offiOption.classList.add('hidden');
+            }
+
+            // Toggle House Count & Adjusted Area (Only valid for House)
+            const houseCountRow = document.getElementById('house-count-row');
+            const adjAreaLabel = document.getElementById('adjusted-area-label');
+
+            if (propType === 'house') {
+                houseCountRow.classList.remove('hidden');
+                adjAreaLabel.classList.remove('hidden');
+            } else {
+                houseCountRow.classList.add('hidden');
+                adjAreaLabel.classList.add('hidden');
+            }
+
+            const isResidentialOffi = document.getElementById('is-residential-offi').checked;
+            if (propType === 'other' || (propType === 'officetel' && !isResidentialOffi)) {
+                customRateSection.classList.remove('hidden');
+            } else {
+                customRateSection.classList.add('hidden');
+            }
+        }
+
+        function calculateFee() {
+            const propType = document.querySelector('input[name="propertyType"]:checked').value;
+            const transType = document.querySelector('input[name="transType"]:checked').value;
+            const isResidentialOffi = document.getElementById('is-residential-offi').checked;
+
+            let amount = parseInt(document.getElementById('amount').value.replace(/,/g, '')) || 0;
+            let monthly = parseInt(document.getElementById('monthly-rent').value.replace(/,/g, '')) || 0;
+
+            if (amount === 0 && monthly === 0) {
+                updateResult(0, 0, 0, 0, 0);
+                return;
+            }
+
+            let calcAmount = amount;
+            if (transType === 'lease' && monthly > 0) {
+                calcAmount = amount + (monthly * 100);
+                if (calcAmount < 50000000) {
+                    calcAmount = amount + (monthly * 70);
+                }
+            }
+
+            let rate = 0;
+            let limit = 0;
+
+            if (propType === 'house') {
+                if (transType === 'sale') {
+                    if (calcAmount < 50000000) { rate = 0.6; limit = 250000; }
+                    else if (calcAmount < 200000000) { rate = 0.5; limit = 800000; }
+                    else if (calcAmount < 900000000) { rate = 0.4; }
+                    else if (calcAmount < 1200000000) { rate = 0.5; }
+                    else if (calcAmount < 1500000000) { rate = 0.6; }
+                    else { rate = 0.7; }
+                } else {
+                    if (calcAmount < 50000000) { rate = 0.5; limit = 200000; }
+                    else if (calcAmount < 100000000) { rate = 0.4; limit = 300000; }
+                    else if (calcAmount < 600000000) { rate = 0.3; }
+                    else if (calcAmount < 1200000000) { rate = 0.4; }
+                    else if (calcAmount < 1500000000) { rate = 0.5; }
+                    else { rate = 0.6; }
+                }
+            } else if (propType === 'officetel' && isResidentialOffi) {
+                if (transType === 'sale') rate = 0.5;
+                else rate = 0.4;
+            } else {
+                let customRate = parseFloat(document.getElementById('custom-rate').value);
+                if (isNaN(customRate)) customRate = 0.9;
+                if (customRate > 0.9) customRate = 0.9; // Cap at 0.9%
+                rate = customRate;
+            }
+
+            let fee = calcAmount * (rate / 100);
+
+            if (limit > 0 && fee > limit) {
+                fee = limit;
+            }
+
+            let vat = fee * 0.1;
+            let total = fee + vat;
+
+            updateResult(calcAmount, rate, fee, vat, total);
+        }
+
+        function getAcquisitionTax(price, propType, houseCount, isAdjusted, isOver85) {
+            // Logic based on 2026 plan (similar to current 2024-2025)
+            // 1. Check Property Type
+            if (propType === 'officetel' || propType === 'other') {
+                return 4.6; // 4% + 0.2 + 0.4
+            }
+
+            // 2. House Logic
+            let baseRate = 0; // Tax rate without surtax
+
+            // Step A: Determine Base Rate based on Household Count & Adjusted Area
+            if (houseCount === '4') {
+                baseRate = 12; // 4주택 이상: 12%
+            } else if (houseCount === '3') {
+                baseRate = isAdjusted ? 12 : 8; // 3주택: 조정 12%, 비조정 8%
+            } else if (houseCount === '2') {
+                baseRate = isAdjusted ? 8 : 1; // 2주택: 조정 8%, 비조정 1~3% (Treat as 1 House logic initially, but if 8% fixes it's 8)
+                // Note: For 2 Houses in Non-Adjusted Area, it follows 1-House rates (1~3%).
+                if (!isAdjusted) {
+                    // Go to Step B (1 House Logic)
+                    baseRate = getOneHouseRate(price);
+                }
+            } else {
+                // 1 House
+                baseRate = getOneHouseRate(price);
+            }
+
+            // Step B: Add Surtax (Local Education, Rural Special)
+            // Rule of thumb:
+            // - Education Tax: 
+            //    - if baseRate <= 4%: 0.1% (Price * 0.1%)
+            //    - if baseRate > 4%: 0.4% (Price * 0.4%)
+            //    * But wait, the standard is: 
+            //      - 1~3%: Edu is Base * 10% (0.1~0.3)
+            //      - 4% (Comm.): Edu is 0.4
+            //      - Heavy (8, 12): Edu is 0.4
+            // - Rural Tax:
+            //    - if Area <= 85m2: 0 (Exempt)
+            //    - if Area > 85m2: 0.2%
+
+            // Simplified Calculation for Estimate
+            let totalRate = baseRate;
+            let eduTax = 0;
+            let ruralTax = isOver85 ? 0.2 : 0;
+
+            if (baseRate >= 8) {
+                // Heavy Duty
+                // Edu Tax is usually 0.4% for heavy duty
+                eduTax = 0.4;
+            } else if (baseRate === 4.6) {
+                // Treated above
+            } else {
+                // Normal (1~3%)
+                // Edu tax is 10% of Acquisition Tax. 
+                // Ex: 1% -> 0.1%, 3% -> 0.3%
+                eduTax = baseRate * 0.1;
+
+                // Exception: Low price < 600m
+                // Note: It's complex. Let's stick to standard approximation.
+            }
+
+            return totalRate + eduTax + ruralTax;
+        }
+
+        function getOneHouseRate(price) {
+            // Price is in Won
+            // < 600,000,000 : 1%
+            // 600m ~ 900m : Formula
+            // > 900,000,000 : 3%
+
+            if (price <= 600000000) return 1.0;
+            if (price > 900000000) return 3.0;
+
+            // Formula: (Price * 2 / 300,000,000 - 3) * 100 / 100 ??
+            // Actually: (Price (in 100m units) * 2 / 3 - 3) %
+            // Ex: 7.5억 -> 7.5 * 2/3 - 3 = 5 - 3 = 2%
+            // Let's compute exact.
+
+            // Price / 100,000,000 = P_uk
+            let p_uk = price / 100000000;
+            let rate = (p_uk * 2 / 3) - 3;
+            // Round to 2 decimals
+            return Math.round(rate * 100) / 100;
+        }
+
+        function updateResult(calcAmount, rate, fee, vat, total) {
+            document.getElementById('trans-amount-display').innerText = Math.floor(calcAmount).toLocaleString() + '원';
+
+            let rateText = rate + '%';
+            const propType = document.querySelector('input[name="propertyType"]:checked').value;
+            const isResidentialOffi = document.getElementById('is-residential-offi').checked;
+            const transType = document.querySelector('input[name="transType"]:checked').value;
+
+            if (propType === 'house' || (propType === 'officetel' && isResidentialOffi)) {
+                rateText = '상한 ' + rateText;
+            }
+
+            document.getElementById('fee-rate-display').innerText = rateText;
+            document.getElementById('fee-display').innerText = Math.floor(fee).toLocaleString() + '원';
+            document.getElementById('vat-display').innerText = Math.floor(vat).toLocaleString() + '원';
+
+            // Acquisition Tax Display
+            let totalWithTax = total;
+
+            if (transType === 'sale') {
+                const houseCount = document.querySelector('input[name="houseCount"]:checked').value;
+                const isAdjusted = document.getElementById('is-adjusted-area').checked;
+                const isOver85 = document.getElementById('is-over-85').checked;
+                const taxRate = getAcquisitionTax(calcAmount, propType, houseCount, isAdjusted, isOver85);
+                const taxAmount = calcAmount * (taxRate / 100);
+
+                document.getElementById('tax-display').innerText = Math.floor(taxAmount).toLocaleString() + '원 (' + taxRate.toFixed(2) + '%)';
+                document.getElementById('tax-row').classList.remove('hidden');
+
+                totalWithTax += taxAmount;
+            } else {
+                document.getElementById('tax-row').classList.add('hidden');
+            }
+
+            document.getElementById('total-display').innerText = Math.floor(totalWithTax).toLocaleString() + '원';
+        }
+
+        // Initial run
+        updateUI();
+    </script>
+
+</body>
+
+</html>
